@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="GemNav adapts a pretrained multimodal LLM into a visual navigation policy that predicts discrete metric waypoint tokens, trained on only 8.7 hours of data and deployed zero-shot on three robots.">
+  <meta name="keywords" content="GemNav, visual navigation, MLLM, VLA, robot navigation, Gemma, CSIRO">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GemNav: Discrete-Token Visual Robot Navigation using a Multimodal Large Language Model</title>
+
+  <meta property="og:title" content="GemNav: Discrete-Token Visual Robot Navigation using a Multimodal Large Language Model">
+  <meta property="og:description" content="A visual navigation policy built on a pretrained MLLM, trained on 8.7 hours of SCAND, transferring zero-shot to Spot, ANYmal and WAVE ROVER.">
+  <meta property="og:image" content="./static/images/gemnav_hero.png">
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css?v=3">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/index.js?v=2"></script>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title"><span class="gemnav">GemNav</span>: Discrete-Token Visual Robot Navigation using a Multimodal Large Language Model</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><a href="https://scholar.google.com/citations?user=YvpaKNMAAAAJ">Peter Böhm</a>,</span>
+            <span class="author-block"><a href="https://scholar.google.com/citations?user=EWwkkhAAAAAJ">Saimunur Rahman</a>,</span>
+            <span class="author-block"><a href="https://scholar.google.com/citations?user=nj2jJB0AAAAJ">Abdelwahed Khamis</a>,</span>
+            <span class="author-block"><a href="https://scholar.google.com/citations?user=sBOsGVoAAAAJ">Sagun Man Singh Shrestha</a>,</span>
+            <span class="author-block"><a href="https://scholar.google.com/citations?user=zx5B5UQAAAAJ">Chris McCool</a>,</span>
+            <span class="author-block"><a href="https://scholar.google.com/citations?user=QAVcuWUAAAAJ">Peyman Moghadam</a></span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">CSIRO Robotics, Brisbane, Australia</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2607.06882"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2607.06882"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="ai ai-arxiv"></i></span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#video"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-youtube"></i></span>
+                  <span>Video</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a class="external-link button is-normal is-rounded is-dark" disabled>
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code (coming soon)</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" autoplay muted loop playsinline height="100%">
+        <source src="./static/videos/teaser.mp4" type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        <span class="gemnav">GemNav</span> turns a pretrained multimodal LLM into a visual
+        navigation policy. Trained on just 8.7 hours of data, the same checkpoint navigates
+        zero-shot on Spot, ANYmal and WAVE ROVER.
+      </h2>
+    </div>
+  </div>
+</section>
+
+<!-- Real-robot rollouts. Add or remove items freely; each one is a looping clip. -->
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item">
+          <video autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/anymal_image_goal.mp4" type="video/mp4">
+          </video>
+          <p class="carousel-caption">ANYmal · Image goal</p>
+        </div>
+        <div class="item">
+          <video autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/rover_pose_offroad.mp4" type="video/mp4">
+          </video>
+          <p class="carousel-caption">WAVE ROVER · 2D pose goal, off-road</p>
+        </div>
+        <div class="item">
+          <video autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/spot_workshop.mp4" type="video/mp4">
+          </video>
+          <p class="carousel-caption">Spot · Image + 2D pose goal</p>
+        </div>
+        <div class="item">
+          <video autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/detour_course.mp4" type="video/mp4">
+          </video>
+          <p class="carousel-caption">Detour Course · Onboard view</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Visual navigation policies built on large pretrained models increasingly rely on large
+            cross-embodiment datasets and expressive action-generation mechanisms. In this paper, we
+            ask whether a pretrained Multimodal Large Language Model (MLLM) can be adapted
+            efficiently for robot navigation by rethinking the representation and construction of
+            navigation actions.
+          </p>
+          <p>
+            We introduce <span class="gemnav">GemNav</span>, a visual navigation policy that
+            represents each robot-local waypoint coordinate as a categorical distribution over
+            discrete metric value bins and soft-decodes it into a continuous coordinate for
+            execution. This probabilistic representation retains likelihood information over
+            alternative coordinate values while providing a compact action space suitable for robot
+            navigation. We further construct training trajectories using metric-distance goal
+            sampling rather than fixed future frame offsets, exposing the policy to varying physical
+            navigation horizons independent of dataset frame rate and robot speed.
+          </p>
+          <p>
+            <span class="gemnav">GemNav</span> is trained on a single 8.7-hour public SCAND
+            dataset, roughly three orders of magnitude smaller than competing cross-embodiment
+            datasets. Extensive offline and closed-loop experiments show improved
+            out-of-distribution generalization over frame-based sampling and substantially more
+            reliable obstacle navigation than a matched continuous regression head. The same policy
+            transfers without per-platform retraining across unseen environments and three
+            physically distinct robot platforms.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+    <!-- Paper video. -->
+    <div class="columns is-centered has-text-centered" id="video">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video</h2>
+        <video class="result-video" controls playsinline preload="metadata"
+               poster="./static/images/gemnav_hero.png">
+          <source src="./static/videos/gemnav_overview.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+    <!--/ Paper video. -->
+  </div>
+</section>
+
+
+<!-- Method. -->
+<section class="section method">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Method</h2>
+    <figure class="paper-figure">
+      <img src="./static/images/gemnav_hero.png"
+           alt="GemNav overview: metric-distance goal sampling on SCAND, a LoRA-adapted MLLM with a prediction head producing coordinate distributions and a navigation state, and zero-shot deployment on Spot, ANYmal and WAVE ROVER.">
+      <figcaption>
+        <b>Overview.</b> <i>Left:</i> metric-distance goal sampling produces eight-waypoint
+        targets over varying physical horizons. <i>Center:</i> LoRA adapts the vision and language
+        towers for image, 2D pose, or image+pose goals; a prediction head outputs categorical
+        coordinate distributions for eight waypoints and a navigation state in one forward pass.
+        <i>Right:</i> the same checkpoint transfers to Spot, ANYmal and WAVE ROVER.
+      </figcaption>
+    </figure>
+
+    <div class="columns is-multiline idea-cards">
+      <div class="column is-one-third">
+        <div class="idea-card">
+          <span class="idea-icon"><i class="fas fa-chart-bar"></i></span>
+          <h3 class="title is-5">Discrete metric bins</h3>
+          <p>
+            Each waypoint coordinate is a categorical distribution over 64 uniform bins spanning
+            ±15&nbsp;m. Soft decoding (the expectation over bin centers) gives a continuous
+            coordinate, while the distribution keeps track of alternative paths, such as passing an
+            obstacle on either side.
+          </p>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="idea-card">
+          <span class="idea-icon"><i class="fas fa-ruler-horizontal"></i></span>
+          <h3 class="title is-5">Metric-distance goal sampling</h3>
+          <p>
+            Training goals are sampled by physical distance (0.5–14&nbsp;m) rather than a fixed
+            number of future frames, so the policy sees varied navigation horizons regardless of
+            dataset frame rate or robot speed.
+          </p>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="idea-card">
+          <span class="idea-icon"><i class="fas fa-brain"></i></span>
+          <h3 class="title is-5">Efficient MLLM adaptation</h3>
+          <p>
+            A frozen Gemma&nbsp;4 backbone is adapted with LoRA on both vision and language towers.
+            One forward pass predicts eight waypoints plus a navigation state
+            (<i>trajectory</i>, <i>goal reached</i>, <i>goal unreachable</i>), so the robot knows
+            when to stop.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--/ Method. -->
+
+
+<!-- Results. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Zero-Shot Real-Robot Results</h2>
+    <p class="has-text-centered section-lead">
+      Every experiment below uses the same SCAND-trained checkpoint, with no per-platform
+      retraining. ANYmal and WAVE ROVER are unseen embodiments.
+    </p>
+
+    <div class="stat-row columns is-mobile is-multiline has-text-centered">
+      <div class="column is-half-mobile is-one-quarter-tablet">
+        <p class="stat-value">8.7&nbsp;h</p><p class="stat-label">training data (SCAND only)</p>
+      </div>
+      <div class="column is-half-mobile is-one-quarter-tablet">
+        <p class="stat-value">3</p><p class="stat-label">robot platforms</p>
+      </div>
+      <div class="column is-half-mobile is-one-quarter-tablet">
+        <p class="stat-value">10/10</p><p class="stat-label">image-goal trials reached</p>
+      </div>
+      <div class="column is-half-mobile is-one-quarter-tablet">
+        <p class="stat-value">0.49&nbsp;m</p><p class="stat-label">final error, Chemical Yard (OmniVLA: 16.54&nbsp;m)</p>
+      </div>
+    </div>
+
+    <figure class="paper-figure summary-figure">
+      <img src="./static/images/goal_distance_error.png"
+           alt="Goal distance error across courses: OmniVLA rises from under 1 m on clear routes to 16.54 m in the Chemical Yard, while GemNav stays between 0.40 and 0.49 m.">
+      <figcaption>Final distance to goal as courses get harder. GemNav stays within 0.40–0.49&nbsp;m, while OmniVLA's error grows to over 15&nbsp;m on cluttered routes.</figcaption>
+    </figure>
+
+    <!-- Image-goal. -->
+    <h3 class="title is-4">Image-goal navigation</h3>
+    <div class="content has-text-justified">
+      <p>
+        In the obstacle-free <i>Open Approach</i> on Spot, <span class="gemnav">GemNav</span>
+        reaches and stops at the goal in all ten trials (0.31 ± 0.11&nbsp;m final displacement),
+        compared with OmniVLA's closest approach of 1.45 ± 0.38&nbsp;m. GNM generally stays at
+        least 3&nbsp;m away, while ViNT and NoMaD succeed reliably from only one of the two initial
+        headings. On the unseen WAVE ROVER, it reaches the image goal in all five trials
+        (0.64 ± 0.12&nbsp;m).
+      </p>
+    </div>
+    <div class="columns is-vcentered">
+      <div class="column is-7">
+        <figure class="paper-figure">
+          <img src="./static/images/traj_baselines_paper.png"
+               alt="Image-goal trajectories of GNM, ViNT, NoMaD, OmniVLA and GemNav in the Open Approach on Spot.">
+          <figcaption>Mean trajectories and variation over five trials per policy and initial heading (Spot).</figcaption>
+        </figure>
+      </div>
+      <div class="column is-5">
+        <video class="result-video" autoplay controls muted loop playsinline>
+          <source src="./static/videos/anymal_image_goal.mp4" type="video/mp4">
+        </video>
+        <p class="video-caption">Image-goal navigation on ANYmal, an unseen embodiment</p>
+      </div>
+    </div>
+
+    <!-- Pose-conditioned. -->
+    <h3 class="title is-4">Pose-conditioned navigation through obstacles</h3>
+    <div class="content has-text-justified">
+      <p>
+        With 2D pose and image+2D pose goals, the gap grows when the robot has to leave the direct
+        line to the goal. In the <i>Warehouse</i>, blocking an otherwise clear aisle barely changes
+        <span class="gemnav">GemNav</span>'s error (0.46 → 0.44&nbsp;m), while OmniVLA's closest
+        approach rises from 0.51 to 15.46&nbsp;m. In the <i>Chemical Yard</i>,
+        <span class="gemnav">GemNav</span> reaches and stops at the goal in all five trials.
+      </p>
+    </div>
+    <figure class="paper-figure">
+      <img src="./static/images/long_course.jpg"
+           alt="Warehouse composite: Spot weaves between obstacles from start to goal, with the path drawn as a colored line.">
+      <figcaption>GemNav on Spot in the Warehouse course, threading through obstacles to the goal.</figcaption>
+    </figure>
+    <figure class="paper-figure">
+      <img src="./static/images/traj_longcourse_paper.png"
+           alt="Image+2D pose navigation trajectories on Spot in the Warehouse (clear), Warehouse (blocked), and Chemical Yard.">
+      <figcaption>
+        Image+2D pose navigation on Spot, five trials per policy. (a) Warehouse (clear),
+        (b) Warehouse (blocked), (c) Chemical Yard. Gray marks obstacles; squares and crosses
+        mark goal stops and obstacle contacts.
+      </figcaption>
+    </figure>
+    <video class="result-video" autoplay controls muted loop playsinline>
+      <source src="./static/videos/warehouse_comparison.mp4" type="video/mp4">
+    </video>
+    <p class="video-caption">Warehouse, clear then blocked aisle: GemNav (left) vs. OmniVLA (right)</p>
+    <video class="result-video" autoplay controls muted loop playsinline>
+      <source src="./static/videos/chemical_yard_comparison.mp4" type="video/mp4">
+    </video>
+    <p class="video-caption">Chemical Yard: GemNav (left) vs. OmniVLA (right)</p>
+
+    <div class="table-container">
+      <table class="table is-fullwidth is-narrow results-table">
+        <caption>Goal displacement Δ (m, mean ± std, lower is better), five trials per method and setting on Spot. Dashes mark settings not run.</caption>
+        <thead>
+          <tr>
+            <th rowspan="2">Difficulty</th><th rowspan="2">Setting</th>
+            <th colspan="2" class="has-text-centered">Image</th>
+            <th colspan="2" class="has-text-centered">2D Pose</th>
+            <th colspan="2" class="has-text-centered">Image + 2D Pose</th>
+          </tr>
+          <tr>
+            <th>OmniVLA</th><th>GemNav</th><th>OmniVLA</th><th>GemNav</th><th>OmniVLA</th><th>GemNav</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="2">Easy</td><td><i>Open Approach</i> (A)</td><td>1.77±0.07</td><td><b>0.41±0.05</b></td><td><b>0.32±0.07</b></td><td>0.43±0.04</td><td><b>0.22±0.09</b></td><td>0.42±0.06</td></tr>
+          <tr><td><i>Open Approach</i> (B)</td><td>1.13±0.28</td><td><b>0.20±0.05</b></td><td>0.48±0.06</td><td><b>0.39±0.02</b></td><td>0.91±0.22</td><td><b>0.42±0.04</b></td></tr>
+          <tr class="group-start"><td rowspan="2">Medium</td><td><i>Detour Course</i> (90°)</td><td>–</td><td>–</td><td>3.23±1.98</td><td><b>0.42±0.02</b></td><td>5.13±0.10</td><td><b>0.40±0.03</b></td></tr>
+          <tr><td><i>Warehouse</i> (clear)</td><td>–</td><td>–</td><td>–</td><td>–</td><td>0.51±0.07</td><td><b>0.46±0.03</b></td></tr>
+          <tr class="group-start"><td rowspan="2">Hard</td><td><i>Warehouse</i> (blocked)</td><td>–</td><td>–</td><td>–</td><td>–</td><td>15.46±0.12</td><td><b>0.44±0.03</b></td></tr>
+          <tr><td><i>Chemical Yard</i></td><td>–</td><td>–</td><td>15.89±0.30</td><td><b>0.44±0.03</b></td><td>16.54±0.02</td><td><b>0.49±0.02</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Off-road. -->
+    <h3 class="title is-4">Off-road navigation in natural terrain</h3>
+    <div class="content has-text-justified">
+      <p>
+        Deployed on irregular bushland with dense vegetation and trees, ANYmal reaches the goal in
+        all seven uninterrupted trials (0.44 ± 0.07&nbsp;m) and Spot in both uninterrupted trials
+        (≈0.43&nbsp;m). With a 2D pose goal, the unseen WAVE ROVER stops at the goal in two of
+        three trials (0.33 and 0.51&nbsp;m), and passes within 0.88&nbsp;m of it in the third.
+      </p>
+    </div>
+    <div class="columns is-vcentered">
+      <div class="column is-6">
+        <figure class="paper-figure">
+          <img src="./static/images/traj_bushland_map.png"
+               alt="Off-road trajectories of ANYmal and Spot on natural terrain with goals and stops marked.">
+          <figcaption>Zero-shot off-road navigation with image+2D pose goals. Stars mark goals; squares mark stops.</figcaption>
+        </figure>
+      </div>
+      <div class="column is-6">
+        <video class="result-video" autoplay controls muted loop playsinline>
+          <source src="./static/videos/offroad_three_robots.mp4" type="video/mp4">
+        </video>
+        <p class="video-caption">Spot, ANYmal and WAVE ROVER on natural terrain</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Ablation. -->
+<section class="section has-background-light-soft">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Why Discrete Tokens?</h2>
+    <div class="content has-text-justified">
+      <p>
+        When there are several feasible paths, such as passing an obstacle on the left or the right,
+        a continuous regression head tends to average them into a straight line through the
+        obstacle. We compare against a matched <i>L</i><sub>1</sub> regression head with the same
+        backbone, LoRA configuration, data, and training. On the <i>Detour Course</i>,
+        <span class="gemnav">GemNav</span> passes the obstacle line and stops at the goal in
+        <b>10/10</b> trials (0.48 ± 0.07&nbsp;m). The <i>L</i><sub>1</sub> head drives into the
+        obstacle in <b>all 10</b> trials, and OmniVLA (continuous head, <i>L</i><sub>2</sub> loss)
+        behaves similarly, with a closest approach of 3.10 ± 0.09&nbsp;m.
+      </p>
+    </div>
+    <figure class="paper-figure">
+      <img src="./static/images/traj_course2_discrete_l1_omnivla.png"
+           alt="Detour Course trajectories: GemNav reaches the goal 10/10 by passing the obstacle on either side; the L1 head (0/10) and OmniVLA (0/5) drive straight at it.">
+      <figcaption>Detour Course with an image+2D pose goal. GemNav passes the obstacle line on either side (10/10); the L1 head (0/10) and OmniVLA (0/5) drive straight at it.</figcaption>
+    </figure>
+    <div class="columns is-vcentered">
+      <div class="column is-6">
+        <figure class="paper-figure">
+          <img src="./static/images/one_obstacle.jpg"
+               alt="Single-obstacle course on Spot: GemNav detours around the obstacle and stops at the goal; OmniVLA drives past the goal into the bin.">
+          <figcaption>Single-obstacle course on Spot: GemNav detours and stops at the goal; OmniVLA misses it.</figcaption>
+        </figure>
+      </div>
+      <div class="column is-6">
+        <video class="result-video" autoplay controls muted loop playsinline>
+          <source src="./static/videos/detour_course.mp4" type="video/mp4">
+        </video>
+        <p class="video-caption">Detour Course, onboard view</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Offline. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Offline Evaluation</h2>
+    <div class="content has-text-justified">
+      <p>
+        We compare eight predicted waypoints against recorded trajectories on held-out SCAND and on
+        two unseen datasets, TokenWalker and
+        <a href="https://csiro-robotics.github.io/WildCross/">WildCross</a><sup><a href="#ref-wildcross">[1]</a></sup>
+        (off-road). <span class="gemnav">GemNav</span> has the lowest ADE/FDE across all datasets
+        and goal modalities.
+      </p>
+    </div>
+
+    <div class="strip-gallery">
+      <figure class="strip">
+        <p class="strip-label">SCAND <span>(in-distribution)</span></p>
+        <img src="./static/images/strip_scand_3_pred.png"
+             alt="GemNav waypoint predictions drawn on six held-out SCAND camera frames.">
+      </figure>
+      <figure class="strip">
+        <p class="strip-label">TokenWalker <span>(unseen)</span></p>
+        <img src="./static/images/strip_tokenwalker_3_pred.png"
+             alt="GemNav waypoint predictions drawn on six TokenWalker camera frames.">
+      </figure>
+      <figure class="strip">
+        <p class="strip-label"><a href="https://csiro-robotics.github.io/WildCross/">WildCross</a> <span>(unseen, off-road)</span></p>
+        <img src="./static/images/strip_wildcross_3_pred.png"
+             alt="GemNav waypoint predictions drawn on six WildCross forest camera frames.">
+      </figure>
+      <p class="strip-caption">GemNav's predicted eight-waypoint paths drawn on camera frames from each dataset.</p>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <video class="result-video" autoplay controls muted loop playsinline>
+          <source src="./static/videos/wildcross_prediction.mp4" type="video/mp4">
+        </video>
+        <p class="video-caption">
+          GemNav predictions on a <a href="https://csiro-robotics.github.io/WildCross/">WildCross</a>
+          forest sequence, with the goal 8&nbsp;m ahead. The policy was never trained on off-road data.
+        </p>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="table is-fullwidth is-narrow results-table">
+        <caption>Offline eight-waypoint prediction error, ADE / FDE in meters (lower is better).</caption>
+        <thead>
+          <tr><th>Model</th><th>Image</th><th>2D Pose</th><th>Image + 2D Pose</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group-label"><td colspan="4"><i>SCAND (in-distribution)</i></td></tr>
+          <tr><td>GNM</td><td>2.83 / 5.48</td><td>–</td><td>–</td></tr>
+          <tr><td>ViNT</td><td>2.89 / 5.56</td><td>–</td><td>–</td></tr>
+          <tr><td>NoMaD</td><td>2.58 / 4.61</td><td>–</td><td>–</td></tr>
+          <tr><td>OmniVLA</td><td>2.55 / 4.63</td><td>2.56 / 4.70</td><td>2.53 / 4.64</td></tr>
+          <tr class="ours"><td>GemNav</td><td><b>0.76 / 1.20</b></td><td><b>0.37 / 0.18</b></td><td><b>0.33 / 0.19</b></td></tr>
+          <tr class="group-label"><td colspan="4"><i>TokenWalker</i></td></tr>
+          <tr><td>GNM</td><td>2.68 / 5.22</td><td>–</td><td>–</td></tr>
+          <tr><td>ViNT</td><td>2.71 / 5.21</td><td>–</td><td>–</td></tr>
+          <tr><td>NoMaD</td><td>2.40 / 4.31</td><td>–</td><td>–</td></tr>
+          <tr><td>OmniVLA</td><td>2.63 / 4.77</td><td>2.76 / 4.93</td><td>2.54 / 4.60</td></tr>
+          <tr class="ours"><td>GemNav</td><td><b>2.09 / 3.64</b></td><td><b>0.78 / 0.19</b></td><td><b>0.75 / 0.19</b></td></tr>
+          <tr class="group-label"><td colspan="4"><i>WildCross (off-road)</i></td></tr>
+          <tr><td>GNM</td><td>2.80 / 5.35</td><td>–</td><td>–</td></tr>
+          <tr><td>ViNT</td><td>2.78 / 5.29</td><td>–</td><td>–</td></tr>
+          <tr><td>NoMaD</td><td>2.41 / 4.32</td><td>–</td><td>–</td></tr>
+          <tr><td>OmniVLA</td><td>2.95 / 5.36</td><td>2.76 / 4.98</td><td>2.67 / 4.81</td></tr>
+          <tr class="ours"><td>GemNav</td><td><b>1.81 / 3.17</b></td><td><b>0.50 / 0.18</b></td><td><b>0.39 / 0.18</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="content references" id="ref-wildcross">
+      <p>
+        [1] J. Knights, J. Reid, K. Roy, D. Hall, M. Cox, P. Moghadam.
+        <a href="https://csiro-robotics.github.io/WildCross/">WildCross: A Cross-Modal Large Scale
+        Benchmark for Place Recognition and Metric Depth Estimation in Natural Environments</a>.
+        IEEE ICRA, 2026. <a href="https://arxiv.org/abs/2603.01475">arXiv:2603.01475</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{bohm2026gemnav,
+  author  = {B{\"o}hm, Peter and Rahman, Saimunur and Khamis, Abdelwahed and Shrestha, Sagun Man Singh and McCool, Chris and Moghadam, Peyman},
+  title   = {{GemNav}: Discrete-Token Visual Robot Navigation using a Multimodal Large Language Model},
+  journal = {arXiv preprint arXiv:2607.06882},
+  year    = {2026},
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://arxiv.org/pdf/2607.06882">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            This website is licensed under a <a rel="license"
+              href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+            Attribution-ShareAlike 4.0 International License</a>. It is adapted from the
+            <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> project page template.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
